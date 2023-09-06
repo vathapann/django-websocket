@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Your Page</title>
+    </head>
+    <body>
+        {% if user.is_authenticated %}
+            <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+        {% endif %}
+        <h1>WebSocket Chat-- {{ user.username }}</h1>
+        <div>----> chat-box <----<div id="chat-box"></div>
+        </div>
+        <input type="text" id="message-input" placeholder="Type your message">
+        <button id="send-button">Send</button>
+        {% block javascript %}
+            <script>
+   // JavaScript code for WebSocket communication
+   const socket = new WebSocket('ws://localhost:8000/ws/chat/user1/');
+   //const socket = new WebSocket('ws://localhost:8000/practice/');
+
+   socket.onopen = (event) => {
+       // WebSocket connection is open
+      console.log("event: ", event)
+   };
+
+   socket.onmessage = (event) => {
+       const data = JSON.parse(event.data);
+       // Handle received messages and display them in the chat-box
+       const chatBox = document.getElementById('chat-box');
+       chatBox.innerHTML += `${data.sender}: ${data.message}<br>`;
+   };
+
+   // Send a message when the "Send" button is clicked
+   document.getElementById('send-button').addEventListener('click', () => {
+       const messageInput = document.getElementById('message-input');
+       const message = messageInput.value.trim();
+       const user = '{{ user.username }}'
+       let recipient;
+       if (user === 'admin'){
+        recipient = 'sovatha'
+       }else {
+        recipient = 'admin'
+       }
+       console.log("recipient: ", recipient)
+
+       if (message) {
+           socket.send(JSON.stringify({ 'message': message, 'recipient':'recipient' }));
+           messageInput.value = '';
+       }
+   });
+            </script>
+        {% endblock javascript %}
+    </body>
+</html>
